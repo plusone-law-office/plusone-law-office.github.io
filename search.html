@@ -1,0 +1,26 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>全文検索</title><link rel="stylesheet" href="style.css"></head><body><div class="wrap">
+<nav class="side"><a class="ws" href="index.html">Slackアーカイブ</a><a href="index.html">🏠 トップ</a><a href="search.html" class=cur>🔍 全文検索</a><a href="files.html">📎 ファイル一覧</a><a href="users.html">👥 メンバー</a><h2>チャンネル</h2><a href="channels/C04RRTKBGNP.html"># 勉強会</a><a href="channels/C04DWTET803.html"># 情報共有</a><a href="channels/C04M40NMLH5.html"># 意見交換会</a><a href="channels/C052FFHG2HH.html"># 新たに参加された方へー若手会の取説ー</a><a href="channels/C04DZEKR344.html"># 相談質問</a><a href="channels/C04N823E72L.html"># 自己紹介</a><a href="channels/C04BBCV3GPM.html"># 連絡網</a><a href="channels/C04BE02H3NY.html"># 雑談</a></nav><main><header class="top"><h1>全文検索</h1><div class="sub">710 件のメッセージから検索</div></header>
+
+<input type="search" id="q" placeholder="キーワードを入力（スペース区切りでAND検索）" autofocus>
+<div style="margin:8px 0;display:flex;gap:8px;flex-wrap:wrap"><select id="ch"><option value="">すべてのチャンネル</option></select><select id="us"><option value="">すべてのメンバー</option></select></div>
+<div id="info" class="mut"></div><div id="res"></div>
+<script src="search-data.js"></script>
+<script>
+const D=window.SEARCH_DATA,q=document.getElementById('q'),res=document.getElementById('res'),info=document.getElementById('info'),chs=document.getElementById('ch'),us=document.getElementById('us');
+for(const[k,v]of Object.entries(D.ch)){const o=document.createElement('option');o.value=k;o.textContent='#'+v;chs.appendChild(o)}
+for(const[k,v]of Object.entries(D.u)){const o=document.createElement('option');o.value=k;o.textContent=v;us.appendChild(o)}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fd=t=>{const d=new Date(t*1000+9*3600e3);const p=n=>String(n).padStart(2,'0');return d.getUTCFullYear()+'/'+p(d.getUTCMonth()+1)+'/'+p(d.getUTCDate())+' '+p(d.getUTCHours())+':'+p(d.getUTCMinutes())};
+function run(){const terms=q.value.trim().toLowerCase().split(/\s+/).filter(Boolean),c=chs.value,u=us.value;
+ try{history.replaceState(null,'','#'+encodeURIComponent(q.value))}catch(e){}
+ if(!terms.length&&!c&&!u){res.innerHTML='';info.textContent='';return}
+ const hits=D.rows.filter(r=>(!c||r[0]===c)&&(!u||r[2]===u)&&terms.every(t=>r[4].toLowerCase().includes(t)));
+ info.textContent=hits.length+' 件'+(hits.length>500?'（先頭500件を表示）':'');
+ const re=terms.length?new RegExp('('+terms.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','gi'):null;
+ res.innerHTML=hits.slice(0,500).map(r=>{let t=r[4];if(t.length>300){const i=terms.length?t.toLowerCase().indexOf(terms[0]):0;const s=Math.max(0,i-100);t=(s?'…':'')+t.slice(s,s+300)+'…'}
+  let h=esc(t);if(re)h=h.replace(re,'<mark>$1</mark>');
+  return '<div class="hit"><div class="meta"><a href="channels/'+r[0]+'.html">#'+esc(D.ch[r[0]]||'')+'</a> ・ '+(r[2]&&D.u[r[2]]?'<a href="users/'+r[2]+'.html">'+esc(D.u[r[2]])+'</a>':'')+' ・ <a href="channels/'+r[0]+'.html#'+r[1]+'">'+fd(r[3])+'</a></div><div>'+h.replace(/\n/g,'<br>')+'</div></div>'}).join('')}
+let tm;q.addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(run,200)});chs.onchange=run;us.onchange=run;
+if(location.hash.length>1){q.value=decodeURIComponent(location.hash.slice(1));run()}
+</script></main></div></body></html>
